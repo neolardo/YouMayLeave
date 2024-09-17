@@ -5,6 +5,7 @@ public static class Globals
     public const int CharacterLayerMask = 1 << 6;
     public const int GroundLayerMask = 1 << 7;
     public const int WallLayerMask = 1 << 8;
+    public const int PlayerLayerMask = 1 << 9;
 
     // tags
     public const string GroundTag = "Ground";

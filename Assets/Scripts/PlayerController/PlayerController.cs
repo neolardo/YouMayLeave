@@ -2,13 +2,16 @@ using Cysharp.Threading.Tasks;
 using System.Threading;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using static UnityEditor.Experimental.GraphView.GraphView;
 
+[RequireComponent(typeof(Player))]
 [RequireComponent(typeof(BoxCollider2D))]
 public class PlayerController : MonoBehaviour
 {
     [SerializeField] InputActionAsset actions;
     [SerializeField][Range(1, 30)] float jumpForce = 15;
     [SerializeField][Range(5, 8)] float horizontalSpeed = 6;
+    private Player player;
     private BoxCollider2D col;
     private CancellationToken playerCT;
     private InputActionMap actionMap;
@@ -33,13 +36,14 @@ public class PlayerController : MonoBehaviour
 
     void Awake()
     {
+        player = GetComponent<Player>();
         col = GetComponent<BoxCollider2D>();
         actionMap = actions.FindActionMap("Gameplay");
         moveAction = actionMap.FindAction("Move");
         attackAction = actionMap.FindAction("Attack");
         attackAction.performed += OnAttack;
         playerCT = this.GetCancellationTokenOnDestroy();
-        collisionMask = Physics2D.GetLayerCollisionMask(Globals.CharacterLayer);
+        collisionMask = Physics2D.GetLayerCollisionMask(Globals.PlayerLayer);
         CalculateRaySpacing();
     }
 
@@ -193,7 +197,7 @@ public class PlayerController : MonoBehaviour
 
     private void OnAttack(InputAction.CallbackContext context)
     {
-        Debug.Log("Attacked!");
+        player.Attack();
     }
 
     private async UniTaskVoid RestrictJumpingAgainAsync(CancellationToken token)

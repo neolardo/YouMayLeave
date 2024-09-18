@@ -1,11 +1,12 @@
 public static class Globals
 {
     // layers
-    public const int CharacterLayer = 6;
-    public const int CharacterLayerMask = 1 << 6;
+    public const int PlayerLayer = 6;
+    public const int PlayerLayerMask = 1 << 6;
     public const int GroundLayerMask = 1 << 7;
     public const int WallLayerMask = 1 << 8;
-    public const int PlayerLayerMask = 1 << 9;
+    public const int EnemyLayerMask = 1 << 9;
+    public const int EntityLayerMask = EnemyLayerMask | PlayerLayerMask;
 
     // tags
     public const string GroundTag = "Ground";
@@ -19,5 +20,9 @@ public static class Globals
     // distances
     public const float RaycastDistance = 3f;
     public const float GroundCheckDistance = 0.05f;
+
+    // limits
+    public const int MaxEntitiesHitAtOnce = 10;
+
 
 }

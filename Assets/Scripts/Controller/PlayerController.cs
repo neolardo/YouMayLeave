@@ -1,23 +1,18 @@
 using Cysharp.Threading.Tasks;
 using System.Threading;
 using UnityEngine;
-using UnityEngine.InputSystem;
-using static UnityEditor.Experimental.GraphView.GraphView;
 
 [RequireComponent(typeof(Player))]
+[RequireComponent(typeof(PlayerInput))]
 [RequireComponent(typeof(BoxCollider2D))]
 public class PlayerController : MonoBehaviour
 {
-    [SerializeField] InputActionAsset actions;
     [SerializeField][Range(1, 30)] float jumpForce = 15;
     [SerializeField][Range(5, 8)] float horizontalSpeed = 6;
     private Player player;
+    private PlayerInput playerInput;
     private BoxCollider2D col;
     private CancellationToken playerCT;
-    private InputActionMap actionMap;
-    private InputAction moveAction;
-    private InputAction attackAction;
-    private Vector2 moveVector;
     private Vector2 frameVelocity;
     private bool canJumpAgain = true;
     private bool isGrounded;
@@ -37,24 +32,12 @@ public class PlayerController : MonoBehaviour
     void Awake()
     {
         player = GetComponent<Player>();
+        playerInput = GetComponent<PlayerInput>();
+        playerInput.attackAction.performed += (_) => player.Attack();
         col = GetComponent<BoxCollider2D>();
-        actionMap = actions.FindActionMap("Gameplay");
-        moveAction = actionMap.FindAction("Move");
-        attackAction = actionMap.FindAction("Attack");
-        attackAction.performed += OnAttack;
         playerCT = this.GetCancellationTokenOnDestroy();
-        collisionMask = Physics2D.GetLayerCollisionMask(Globals.PlayerLayer);
+        collisionMask = Physics2D.GetLayerCollisionMask(Constants.PlayerLayer);
         CalculateRaySpacing();
-    }
-
-    void Update()
-    {
-        GatherInputs();
-    }
-
-    private void GatherInputs()
-    {
-        moveVector = moveAction.ReadValue<Vector2>();
     }
 
     private void FixedUpdate()
@@ -98,9 +81,9 @@ public class PlayerController : MonoBehaviour
 
     private void HandleSidewaysMovement()
     {
-        if (Mathf.Abs(moveVector.x) > Globals.MoveInputDelta)
+        if (Mathf.Abs(playerInput.moveVector.x) > Constants.MoveInputDelta)
         {
-            frameVelocity = new Vector2(moveVector.x* horizontalSpeed * Time.fixedDeltaTime, frameVelocity.y);
+            frameVelocity = new Vector2(playerInput.moveVector.x* horizontalSpeed * Time.fixedDeltaTime, frameVelocity.y);
         }
         else
         {
@@ -125,7 +108,7 @@ public class PlayerController : MonoBehaviour
 
     private void HandleJump()
     {
-        if (moveVector.y > Globals.MoveInputDelta && isGrounded && canJumpAgain)
+        if (playerInput.moveVector.y > Constants.MoveInputDelta && isGrounded && canJumpAgain)
         {
             frameVelocity = new Vector2(frameVelocity.x, jumpForce *Time.fixedDeltaTime);
             isGrounded = false;
@@ -195,10 +178,6 @@ public class PlayerController : MonoBehaviour
         raycastOrigins.topRight = new Vector2(bounds.max.x, bounds.max.y);
     }
 
-    private void OnAttack(InputAction.CallbackContext context)
-    {
-        player.Attack();
-    }
 
     private async UniTaskVoid RestrictJumpingAgainAsync(CancellationToken token)
     {
@@ -207,13 +186,4 @@ public class PlayerController : MonoBehaviour
         canJumpAgain = true;
     }
 
-    void OnEnable()
-    {
-        actionMap.Enable();
-    }
-
-    void OnDisable()
-    {
-        actionMap.Disable();
-    }
 }

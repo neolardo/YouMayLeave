@@ -20,14 +20,17 @@ public class Enemy : Entity
     private Collider2D[] playerColliderHitArray;
     private PathStation nextStation;
     private CancellationTokenSource patrolCTS;
+    private CancellationTokenSource attackCTS;
 
     private const float HitDuration = .5f;
+    private const float AttackDelay = 1.5f; //TODO
     private const float StationGizmoRadius = 0.2f;
 
     protected override void Awake()
     {
         base.Awake();
         patrolCTS = new CancellationTokenSource();
+        attackCTS = new CancellationTokenSource();
         foreach (var station in patrolStations)
         {
             station.SavePosition(transform);
@@ -35,9 +38,9 @@ public class Enemy : Entity
         lookAt = initialLookAt.normalized;
         canPatrol = patrolStations.Count >= 2 && !Mathf.Approximately((patrolStations[0].savedPosition - patrolStations[1].savedPosition).magnitude, 0);
         triggerContactFilter = new ContactFilter2D();
-        triggerContactFilter.SetLayerMask(Globals.PlayerLayerMask);
+        triggerContactFilter.SetLayerMask(Constants.PlayerLayerMask);
         playerColliderHitArray = new Collider2D[1];
-        PatrolUntilTriggered();
+        PatrolUntilTriggered().Forget(); //TODO: refactor using rb physics
     }
 
     private void FixedUpdate()
@@ -57,6 +60,13 @@ public class Enemy : Entity
         }
         base.TakeDamage(damage, hitVector);
         transform.DOMove((Vector2)transform.position + hitVector, HitDuration).ToUniTask().Forget();
+    }
+
+    protected override void Die()
+    {
+        base.Die();
+        attackCTS.Cancel();
+        patrolCTS.Cancel();
     }
 
     #region Triggering
@@ -80,7 +90,18 @@ public class Enemy : Entity
         isPatrolling = false;
         patrolCTS.Cancel();
         Debug.Log($"Enemy ({name}) triggered!");
+        AttackRepeatedlyWhileTriggered().Forget();
     } 
+
+    private async UniTaskVoid AttackRepeatedlyWhileTriggered()
+    {
+        while (isTriggered)
+        {
+            await UniTask.WaitForSeconds(AttackDelay, cancellationToken: attackCTS.Token);
+            Attack();
+            Debug.Log($"Enemy tried to attack.");
+        }
+    }
 
     #endregion
 

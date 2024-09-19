@@ -1,4 +1,4 @@
-public static class Globals
+public static class Constants
 {
     // layers
     public const int PlayerLayer = 6;
@@ -10,6 +10,13 @@ public static class Globals
 
     // tags
     public const string GroundTag = "Ground";
+
+    // inputs
+    public const string GamePlayActionMap = "Gameplay";
+    public const string UIActionMap = "UI";
+    public const string AttackInputAction = "Attack";
+    public const string MoveInputAction = "Move";
+    public const string AnythingInputAction = "Anything";
 
     // deltas
     public const float MoveInputDelta = 0.1f;
@@ -23,6 +30,4 @@ public static class Globals
 
     // limits
     public const int MaxEntitiesHitAtOnce = 10;
-
-
 }

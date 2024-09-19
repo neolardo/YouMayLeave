@@ -6,7 +6,7 @@ public class RangedWeapon : Weapon
     public float reloadDuration;
     public float bulletSpeed;
 
-    public override void Attack(Vector2 origin)
+    public override void Attack(Transform self, ContactFilter2D hitFilter, Collider2D[] hitColliders)
     {
         //TODO
     }

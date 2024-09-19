@@ -1,18 +1,35 @@
-using UnityEngine;
+using System;
 
 public class Player : Entity
 {
-    [SerializeField] private Weapon weapon;
+    public event Action Died;
+    public event Action<int> HealthChanged;
 
-    protected override void Awake()
+    protected override int Health
     {
-        base.Awake();
-        weapon.Initialize(this.gameObject);
+        get
+        {
+            return base.Health;
+        }
+        set 
+        { 
+            base.Health = value;
+            HealthChanged?.Invoke(base.Health); 
+        }
     }
 
-    public void Attack()
+    public void Revive()
     {
-        weapon.Attack(transform.position);
+        if (!IsAlive) 
+        {
+            Health = initialHealth;
+        }
+    }
+
+    protected override void Die()
+    {
+        base.Die();
+        Died?.Invoke();
     }
 
 }
